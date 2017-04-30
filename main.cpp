@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <iomanip>
 
 using namespace std;
 
@@ -120,8 +121,8 @@ void print_header(void){
   std::cout << "\t processor 0\t\t\tbus\t\t\t processor1     \n";
   std::cout << "-----------------------------------------------";
   std::cout << "------------------------------------------\n";
-  std::cout << "action\t\t  cache contents\t\taction\t\taction\t\t  cache contents\n";
-  std::cout << "\t\t  addr  wrd0 wrd1\t\t\t\t\t\t  addr  wrd0 wrd1\n";
+  std::cout << "action\t\t  cache contents\taction\t\taction\t\t  cache contents\n";
+  std::cout << "\t\t  addr  wrd0 wrd1\t\t\t\t\t  addr  wrd0 wrd1\n";
   std::cout << "\t\tI  ----- ---- ----\t\t\t\t\tI  ----- ---- ----\n";
 };
 
@@ -134,22 +135,25 @@ void print_stats(Processor p0, Processor p1, Bus bus){
   cout << p1.rh_count << "\tREADs\t" << bus.reads << endl;
   cout << "read misses\t" << p0.rm_count << "\tread misses\t";
   cout << p1.rm_count << "\tRIMs\t" << bus.rims << endl;
-  cout << "write hits\t" << p0.wm_count << "\twrite hits\t";
+  cout << "write hits\t" << p0.wh_count << "\twrite hits\t";
   cout << p1.wh_count << "\tWBs\t" << bus.wbs << endl;
   cout << "write misses\t" << p0.wm_count << "\twrite misses\t";
   cout << p1.wm_count << "\tINVs\t" << bus.invs << endl;
   cout << "-------------------------------------------";
   cout << "----------------" << endl;
-  cout << "hit rate\t";
+  cout << "hit rate  ";
   p0.total = p0.rh_count + p0.rm_count + p0.wh_count + p0.wm_count;
-  cout << ((p0.rh_count+p0.wh_count)/p0.total)*100;
-  cout << "\thit rate\t";
+  cout << fixed << setprecision(1) << (float)(p0.rh_count + p0.wh_count)/p0.total * 100;
+  cout << "%\t\thit rate ";
   p1.total = p1.rh_count + p1.rm_count + p1.wh_count + p1.wm_count;
-  cout << ((p1.rh_count+p1.wh_count)/p1.total)*100;
+  cout << fixed << setprecision(1) << (float)(p1.rh_count+p1.wh_count)/p1.total *100;
+  cout << "%";
   bus.total = bus.reads + bus.rims + bus.wbs + bus.invs;
-  cout << "\ttotal\t" << bus.total;
+  cout << "\t\ttotal\t" << dec << bus.total;
   cout << endl;
 }
+
+
 
 void print_line(struct inputs input, Processor *p0, Processor *p1, int * memory, Bus *bus){
   // do stuff
@@ -214,6 +218,7 @@ void print_line(struct inputs input, Processor *p0, Processor *p1, int * memory,
               // new state S revised bus action RD/WB
               p1->my_state = 'S';
               bus->state = "RD/WB";
+              bus->wbs++;
               // bus->reads++;
             } else if(bus->state == "RIM"){
               // new state I revised bus action RIM/WB
@@ -221,6 +226,7 @@ void print_line(struct inputs input, Processor *p0, Processor *p1, int * memory,
               p1->line_address = 900;
               p1->word_address = 900;
               bus->state = "RIM/WB";
+              bus->wbs++;
               // bus->rims++;
             }
             break;
@@ -286,14 +292,14 @@ void print_line(struct inputs input, Processor *p0, Processor *p1, int * memory,
               // new state S revised bus action RD/WB
               p0->my_state = 'S';
               bus->state = "RD/WB";
-              // bus->reads++;
+              bus->wbs++;
             } else if(bus->state == "RIM"){
               // new state I revised bus action RIM/WB
               p0->my_state = 'I';
               p0->line_address = 900;
               p0->word_address = 900;
               bus->state = "RIM/WB";
-              // bus->rims++;
+              bus->wbs++;
             }
             break;
         }
@@ -379,14 +385,14 @@ void print_line(struct inputs input, Processor *p0, Processor *p1, int * memory,
                 // new state S revised bus action RD/WB
                 p1->my_state = 'S';
                 bus->state = "RD/WB";
-                // bus->reads++;
+                bus->wbs++;
               } else if(bus->state == "RIM"){
                 // new state I revised bus action RIM/WB
                 p1->my_state = 'I';
                 p1->line_address = 900;
                 p1->word_address = 900;
                 bus->state = "RIM/WB";
-                // bus->rims++;
+                bus->wbs++;
               }
               break;
         }
@@ -470,14 +476,14 @@ void print_line(struct inputs input, Processor *p0, Processor *p1, int * memory,
               // new state S revised bus action RD/WB
               p0->my_state = 'S';
               bus->state = "RD/WB";
-              // bus->reads++;
+              bus->wbs++;
             } else if(bus->state == "RIM"){
               // new state I revised bus action RIM/WB
               p0->my_state = 'I';
               p0->line_address = 900;
               p0->word_address = 900;
               bus->state = "RIM/WB";
-              // bus->rims++;
+              bus->wbs++;
             }
             break;
         }
@@ -488,9 +494,11 @@ void print_line(struct inputs input, Processor *p0, Processor *p1, int * memory,
   if(bus->state == "WBr/R"){
     cout << "\t\t\t\t\tWB" << endl;
     bus->state = "READ";
+    bus->wbs++;
   } else if(bus->state == "WBr/RIM"){
     cout << "\t\t\t\t\tWB" <<endl;
     bus->state = "RIM";
+    bus->wbs++;
   }
   if(input.processor == 0){
     if(input.action == 'r') cout << "read  ";
