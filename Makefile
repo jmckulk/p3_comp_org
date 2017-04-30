@@ -4,14 +4,12 @@ TARGET = main
 
 all: main
 
-main: main.o MSI.o
-	$(CC) $(CFLAGS) -o main main.o MSI.o
+main: main.o
+	$(CC) $(CFLAGS) -o main main.o
 
-main.o: main.cpp MSI.h
+main.o: main.cpp
 	$(CC) $(CFLAGS) -c main.cpp
 
-MSI.o: MSI.cpp MSI.h
-	$(CC) $(CFLAGS) -c MSI.cpp
 
 clean:
 	$(RM) main *.o *~
